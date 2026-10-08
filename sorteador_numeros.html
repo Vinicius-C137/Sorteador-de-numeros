@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sorteador de Números</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f4f6fb;
+        --surface: #fff;
+        --text: #182033;
+        --muted: #667085;
+        --border: #dfe4ee;
+        --primary: #635bff;
+        --primary2: #5148e5;
+        --danger: #d92d20;
+        --shadow: 0 18px 50px rgba(30, 41, 59, 0.12);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0e1118;
+          --surface: #171b25;
+          --text: #f2f4f7;
+          --muted: #98a2b3;
+          --border: #2d3442;
+          --shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      .app {
+        min-height: 100vh;
+        background: var(--bg);
+      }
+      .container {
+        width: min(980px, 92%);
+        margin: auto;
+        padding: 48px 0;
+      }
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+      .badge {
+        display: inline-block;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--primary) 13%, transparent);
+        color: var(--primary);
+        font-weight: 700;
+        font-size: 13px;
+      }
+      .header h1 {
+        font-size: clamp(30px, 5vw, 48px);
+        margin: 14px 0 8px;
+      }
+      .header p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 16px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1.15fr;
+        gap: 22px;
+      }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+      }
+      .card h2 {
+        margin: 0 0 18px;
+        font-size: 20px;
+      }
+      .fields {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 7px;
+      }
+      input {
+        width: 100%;
+        padding: 13px 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: transparent;
+        color: var(--text);
+        font-size: 16px;
+        outline: none;
+      }
+      input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px
+          color-mix(in srgb, var(--primary) 15%, transparent);
+      }
+      .switch {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        margin: 17px 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .switch input {
+        width: auto;
+      }
+      .btn:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+      .btn {
+        width: 100%;
+        border: 0;
+        border-radius: 13px;
+        padding: 14px 18px;
+        font-weight: 800;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .primary {
+        background: var(--primary);
+        color: white;
+      }
+      .primary:hover {
+        background: var(--primary2);
+      }
+      .secondary {
+        background: transparent;
+        color: var(--text);
+        border: 1px solid var(--border);
+        margin-top: 10px;
+      }
+      .result {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 320px;
+      }
+      .result-label {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .number {
+        font-size: clamp(80px, 13vw, 140px);
+        line-height: 1;
+        font-weight: 900;
+        letter-spacing: -5px;
+        margin: 18px 0;
+      }
+      .number.empty {
+        color: var(--border);
+      }
+      .number.rolling {
+        animation: numberPulse 0.12s ease-in-out infinite;
+      }
+      .number.reveal {
+        animation: numberReveal 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      @keyframes numberPulse {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.65;
+        }
+        50% {
+          transform: scale(1.04);
+          opacity: 1;
+        }
+      }
+      @keyframes numberReveal {
+        0% {
+          transform: scale(0.55);
+          opacity: 0;
+          filter: blur(8px);
+        }
+        55% {
+          transform: scale(1.12);
+          opacity: 1;
+          filter: blur(0);
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+      .status {
+        min-height: 22px;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .history {
+        margin-top: 22px;
+      }
+      .history-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+      .history-head h2 {
+        margin: 0;
+      }
+      .clear {
+        border: 0;
+        background: none;
+        color: var(--danger);
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .chip {
+        padding: 8px 11px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        font-weight: 700;
+      }
+      .empty-history {
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .error {
+        color: var(--danger);
+        font-size: 13px;
+        margin-top: 9px;
+        min-height: 18px;
+      }
+      @media (max-width: 720px) {
+        .container {
+          padding: 30px 0;
+        }
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .result {
+          min-height: 260px;
+        }
+        .fields {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <main class="container">
+        <header class="header">
+          <span class="badge">SORTEIO ALEATÓRIO</span>
+          <h1>Sorteador de Números</h1>
+          <p>
+            Defina o intervalo e sorteie um número de forma rápida e simples.
+          </p>
+        </header>
+        <section class="grid">
+          <div class="card">
+            <h2>Configuração</h2>
+            <div class="fields">
+              <div>
+                <label for="inicio">Número inicial</label
+                ><input id="inicio" type="number" value="1" step="1" />
+              </div>
+              <div>
+                <label for="fim">Número final</label
+                ><input id="fim" type="number" value="100" step="1" />
+              </div>
+            </div>
+            <label class="switch"
+              ><input id="semRepetir" type="checkbox" checked /> Não repetir
+              números já sorteados</label
+            >
+            <button class="btn primary" id="sortear">Sortear número</button>
+            <button class="btn secondary" id="resetar">Limpar sorteios</button>
+            <div class="error" id="erro"></div>
+          </div>
+          <div class="card result">
+            <div class="result-label">NÚMERO SORTEADO</div>
+            <div class="number empty" id="resultado">—</div>
+            <div class="status" id="status">
+              Configure o intervalo e clique em sortear.
+            </div>
+          </div>
+        </section>
+        <section class="card history">
+          <div class="history-head">
+            <h2>Histórico</h2>
+            <button class="clear" id="limparHistorico">Limpar histórico</button>
+          </div>
+          <div class="chips" id="historico">
+            <span class="empty-history">Nenhum número sorteado ainda.</span>
+          </div>
+        </section>
+      </main>
+    </div>
+    <script>
+      const inicio = document.getElementById("inicio"),
+        fim = document.getElementById("fim"),
+        semRepetir = document.getElementById("semRepetir");
+      const resultado = document.getElementById("resultado"),
+        status = document.getElementById("status"),
+        historico = document.getElementById("historico"),
+        erro = document.getElementById("erro");
+      let sorteados = [];
+      function validar() {
+        const a = Number(inicio.value),
+          b = Number(fim.value);
+        if (!Number.isInteger(a) || !Number.isInteger(b)) {
+          return "Informe números inteiros válidos.";
+        }
+        if (a > b) {
+          return "O início não pode ser maior que o fim.";
+        }
+        if (a === b && semRepetir.checked && sorteados.includes(a)) {
+          return "Todos os números desse intervalo já foram sorteados.";
+        }
+        if (
+          semRepetir.checked &&
+          b - a + 1 <= sorteados.filter((n) => n >= a && n <= b).length
+        ) {
+          return "Todos os números desse intervalo já foram sorteados.";
+        }
+        return "";
+      }
+      function render() {
+        if (!sorteados.length) {
+          historico.innerHTML =
+            '<span class="empty-history">Nenhum número sorteado ainda.</span>';
+          return;
+        }
+        historico.innerHTML = sorteados
+          .map((n) => `<span class="chip">${n}</span>`)
+          .join("");
+      }
+      let sorteando = false;
+      let animacao = null;
+      function sortear() {
+        if (sorteando) return;
+        erro.textContent = "";
+        const msg = validar();
+        if (msg) {
+          erro.textContent = msg;
+          return;
+        }
+        const a = Number(inicio.value),
+          b = Number(fim.value);
+        let n;
+        do {
+          n = Math.floor(Math.random() * (b - a + 1)) + a;
+        } while (semRepetir.checked && sorteados.includes(n));
+        sorteando = true;
+        document.getElementById("sortear").disabled = true;
+        resultado.classList.remove("reveal", "empty");
+        resultado.classList.add("rolling");
+        status.textContent = "Sorteando...";
+        let inicioAnimacao = performance.now();
+        animacao = setInterval(() => {
+          let provisoria;
+          do {
+            provisoria = Math.floor(Math.random() * (b - a + 1)) + a;
+          } while (semRepetir.checked && sorteados.includes(provisoria));
+          resultado.textContent = provisoria;
+        }, 70);
+        setTimeout(() => {
+          clearInterval(animacao);
+          animacao = null;
+          resultado.textContent = n;
+          resultado.classList.remove("rolling");
+          void resultado.offsetWidth;
+          resultado.classList.add("reveal");
+          status.textContent = `Intervalo: ${a} a ${b}`;
+          if (!sorteados.includes(n)) sorteados.unshift(n);
+          render();
+          sorteando = false;
+          document.getElementById("sortear").disabled = false;
+        }, 1100);
+      }
+      function limpar() {
+        sorteados = [];
+        resultado.textContent = "—";
+        resultado.classList.add("empty");
+        status.textContent = "Configure o intervalo e clique em sortear.";
+        erro.textContent = "";
+        render();
+      }
+      document.getElementById("sortear").addEventListener("click", sortear);
+      document.getElementById("resetar").addEventListener("click", limpar);
+      document
+        .getElementById("limparHistorico")
+        .addEventListener("click", limpar);
+      [inicio, fim].forEach((el) =>
+        el.addEventListener("input", () => (erro.textContent = "")),
+      );
+    </script>
+  </body>
+</html>
